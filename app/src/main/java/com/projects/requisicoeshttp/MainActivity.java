@@ -1,18 +1,15 @@
 package com.projects.requisicoeshttp;
 
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.google.gson.GsonBuilder;
+import androidx.appcompat.app.AppCompatActivity;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.projects.requisicoeshttp.api.CEPService;
+import com.projects.requisicoeshttp.model.CEP;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -22,6 +19,9 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -39,15 +39,17 @@ public class MainActivity extends AppCompatActivity {
         btnRecuperar = findViewById(R.id.btn);
         txtResultado = findViewById(R.id.txt);
 
+        retrofit = new Retrofit.Builder()
+                .baseUrl("https://viacep.com.br/ws/")
+                // Usar a versão 2.4.0 para obter o GsonConverterFactory
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
         btnRecuperar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                Retrofit retrofit = new Retrofit.Builder()
-                        .baseUrl("https://api.github.com/")
-                        // Usar a versão 2.4.0 para obter o GsonConverterFactory
-                        .addConverterFactory(GsonConverterFactory.create())
-                        .build();
+                  recuperarCEPRetrofit();
 
 //                MyTask task = new MyTask();
 //                String urlApi = "https://blockchain.info/ticker";
@@ -55,6 +57,29 @@ public class MainActivity extends AppCompatActivity {
 //                String urlMovies = "https://rafals-dsmovie.herokuapp.com/movies";
 //                String urlMoviesLocal = "http://localhost:8080/movies?size=12&page=1";
 //                task.execute(urlCep);
+
+            }
+        });
+
+
+    }
+
+    private void recuperarCEPRetrofit(){
+        CEPService cepService = retrofit.create(CEPService.class);
+//        Call<CEP> call = cepService.recuperarCEP();
+        Call<CEP> call = cepService.recuperarCEP();
+
+        call.enqueue(new Callback<CEP>() {
+            @Override
+            public void onResponse(Call<CEP> call, Response<CEP> response) {
+                if(response.isSuccessful()){
+                    CEP cep = response.body();
+                    txtResultado.setText(cep.getLocalidade());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<CEP> call, Throwable t) {
 
             }
         });
@@ -109,27 +134,27 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(String resultado) {
             super.onPostExecute(resultado);
 
-            String logradouro = null;
-            String cep = null;
-            String complemento = null;
-            String bairro = null;
-            String localidade = null;
-            String uf = null;
+//            String logradouro = null;
+//            String cep = null;
+//            String complemento = null;
+//            String bairro = null;
+//            String localidade = null;
+//            String uf = null;
+//
+//            try {
+//                JSONObject jsonObject = new JSONObject(resultado);
+//                logradouro = jsonObject.getString("logradouro");
+//                cep = jsonObject.getString("cep");
+//                complemento = jsonObject.getString("complemento");
+//                bairro = jsonObject.getString("bairro");
+//                localidade = jsonObject.getString("localidade");
+//                uf = jsonObject.getString("uf");
+//
+//            } catch (JSONException e) {
+//                e.printStackTrace();
+//            }
 
-            try {
-                JSONObject jsonObject = new JSONObject(resultado);
-                logradouro = jsonObject.getString("logradouro");
-                cep = jsonObject.getString("cep");
-                complemento = jsonObject.getString("complemento");
-                bairro = jsonObject.getString("bairro");
-                localidade = jsonObject.getString("localidade");
-                uf = jsonObject.getString("uf");
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-            txtResultado.setText(logradouro + "\n" + cep + "\n" + complemento + "\n" + bairro + "\n" + localidade + "\n" + uf);
+//            txtResultado.setText(logradouro + "\n" + cep + "\n" + complemento + "\n" + bairro + "\n" + localidade + "\n" + uf);
         }
     }
 }
