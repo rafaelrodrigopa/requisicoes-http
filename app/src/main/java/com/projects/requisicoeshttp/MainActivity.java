@@ -2,6 +2,7 @@ package com.projects.requisicoeshttp;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -9,7 +10,9 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.projects.requisicoeshttp.api.CEPService;
+import com.projects.requisicoeshttp.api.DataService;
 import com.projects.requisicoeshttp.model.CEP;
+import com.projects.requisicoeshttp.model.Foto;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,6 +21,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -30,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
     private Button btnRecuperar;
     private TextView txtResultado;
     private Retrofit retrofit;
+    private List<Foto> fotos = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +46,8 @@ public class MainActivity extends AppCompatActivity {
         txtResultado = findViewById(R.id.txt);
 
         retrofit = new Retrofit.Builder()
-                .baseUrl("https://viacep.com.br/ws/")
+//                .baseUrl("https://viacep.com.br/ws/")
+                .baseUrl("https://jsonplaceholder.typicode.com")
                 // Usar a versão 2.4.0 para obter o GsonConverterFactory
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
@@ -49,7 +56,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                  recuperarCEPRetrofit();
+                recuperarListaRetrofit();
+//                  recuperarCEPRetrofit();
 
 //                MyTask task = new MyTask();
 //                String urlApi = "https://blockchain.info/ticker";
@@ -64,10 +72,33 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void recuperarListaRetrofit(){
+
+        DataService service = retrofit.create(DataService.class);
+        Call<List<Foto>> call = service.recuperarFotos();
+
+        call.enqueue(new Callback<List<Foto>>() {
+            @Override
+            public void onResponse(Call<List<Foto>> call, Response<List<Foto>> response) {
+                fotos = response.body();
+
+                for (int i= 0; i< fotos.size(); i++){
+                    Foto foto = fotos.get(i);
+                    Log.d("resultado","resultado: " + foto.getId());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Foto>> call, Throwable t) {
+
+            }
+        });
+    }
+
     private void recuperarCEPRetrofit(){
         CEPService cepService = retrofit.create(CEPService.class);
 //        Call<CEP> call = cepService.recuperarCEP();
-        Call<CEP> call = cepService.recuperarCEP();
+        Call<CEP> call = cepService.recuperarCEP("01310100");
 
         call.enqueue(new Callback<CEP>() {
             @Override
