@@ -9,6 +9,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.google.gson.GsonBuilder;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,10 +22,14 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
 public class MainActivity extends AppCompatActivity {
 
     private Button btnRecuperar;
     private TextView txtResultado;
+    private Retrofit retrofit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,9 +42,20 @@ public class MainActivity extends AppCompatActivity {
         btnRecuperar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                MyTask task = new MyTask();
-                String urlApi = "https://blockchain.info/ticker";
-                task.execute(urlApi);
+
+                Retrofit retrofit = new Retrofit.Builder()
+                        .baseUrl("https://api.github.com/")
+                        // Usar a versão 2.4.0 para obter o GsonConverterFactory
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .build();
+
+//                MyTask task = new MyTask();
+//                String urlApi = "https://blockchain.info/ticker";
+//                String urlCep = "https://viacep.com.br/ws/01001000/json";
+//                String urlMovies = "https://rafals-dsmovie.herokuapp.com/movies";
+//                String urlMoviesLocal = "http://localhost:8080/movies?size=12&page=1";
+//                task.execute(urlCep);
+
             }
         });
     }
@@ -88,7 +108,28 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String resultado) {
             super.onPostExecute(resultado);
-            txtResultado.setText(resultado);
+
+            String logradouro = null;
+            String cep = null;
+            String complemento = null;
+            String bairro = null;
+            String localidade = null;
+            String uf = null;
+
+            try {
+                JSONObject jsonObject = new JSONObject(resultado);
+                logradouro = jsonObject.getString("logradouro");
+                cep = jsonObject.getString("cep");
+                complemento = jsonObject.getString("complemento");
+                bairro = jsonObject.getString("bairro");
+                localidade = jsonObject.getString("localidade");
+                uf = jsonObject.getString("uf");
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            txtResultado.setText(logradouro + "\n" + cep + "\n" + complemento + "\n" + bairro + "\n" + localidade + "\n" + uf);
         }
     }
 }
