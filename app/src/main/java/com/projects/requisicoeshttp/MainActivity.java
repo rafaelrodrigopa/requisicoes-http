@@ -13,6 +13,7 @@ import com.projects.requisicoeshttp.api.CEPService;
 import com.projects.requisicoeshttp.api.DataService;
 import com.projects.requisicoeshttp.model.CEP;
 import com.projects.requisicoeshttp.model.Foto;
+import com.projects.requisicoeshttp.model.Postagem;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -56,7 +57,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                recuperarListaRetrofit();
+                  salvarPostagem();
+//                recuperarListaRetrofit();
 //                  recuperarCEPRetrofit();
 
 //                MyTask task = new MyTask();
@@ -69,6 +71,33 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
+    }
+
+    private void salvarPostagem(){
+
+        //Configura objeto postagem
+//        Postagem postagem = new Postagem("1234","Título postagem!","Corpo postagem");
+
+        //Recupera o serviço e salva postagem
+        DataService service = retrofit.create(DataService.class);
+
+        Call<Postagem> call  = service.salvarPostagem("1234","Título postagem!","Corpo postagem");
+
+        call.enqueue(new Callback<Postagem>() {
+            @Override
+            public void onResponse(Call<Postagem> call, Response<Postagem> response) {
+                if(response.isSuccessful()){
+                    Postagem postagemResposta = response.body();
+                    txtResultado.setText("Código: " + response.code() +"\nid: " + postagemResposta.getId() + "\nTitulo: " + postagemResposta.getTitle());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Postagem> call, Throwable t) {
+
+            }
+        });
 
     }
 
