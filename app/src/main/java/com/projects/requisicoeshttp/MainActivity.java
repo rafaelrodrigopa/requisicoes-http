@@ -1,5 +1,6 @@
 package com.projects.requisicoeshttp;
 
+import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -7,6 +8,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.projects.requisicoeshttp.api.CEPService;
@@ -38,6 +40,8 @@ public class MainActivity extends AppCompatActivity {
     private Retrofit retrofit;
     private List<Foto> fotos = new ArrayList<>();
 
+    DataService service = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,11 +57,15 @@ public class MainActivity extends AppCompatActivity {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
+        service = retrofit.create(DataService.class);
+
         btnRecuperar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                  salvarPostagem();
+                removerPostagem();
+//                atualizarPostagem();
+//                  salvarPostagem();
 //                recuperarListaRetrofit();
 //                  recuperarCEPRetrofit();
 
@@ -74,13 +82,64 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void removerPostagem() {
+        Call<Void> call = service.removerPostagem(2);
+
+        call.enqueue(new Callback<Void>() {
+            @SuppressLint("SetTextI18n")
+            @Override
+            public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                if(response.isSuccessful()){
+                    txtResultado.setText("Status: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+
+            }
+        });
+    }
+
+    private void atualizarPostagem() {
+
+        //Postagem postagem = new Postagem("1234",null,"Corpo postagem");
+
+        Postagem postagem = new Postagem();
+        postagem.setBody("Corpo da mensagem alterado");
+
+        Call<Postagem> call = service.atualizarPostagemPatch(2, postagem);
+
+        call.enqueue(new Callback<Postagem>() {
+            @SuppressLint("SetTextI18n")
+            @Override
+            public void onResponse(Call<Postagem> call, Response<Postagem> response) {
+                if(response.isSuccessful()){
+                    Postagem postagemResposta = response.body();
+                    assert postagemResposta != null;
+                    txtResultado.setText("Status: " + response.code()
+                            +"\nid: " + postagemResposta.getId()
+                            + "\nuserId: " + postagemResposta.getUserId()
+                            + "\ntitulo: " + postagemResposta.getTitle()
+                            + "\nbody: " + postagemResposta.getBody()
+                    );
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Postagem> call, Throwable t) {
+
+            }
+        });
+    }
+
     private void salvarPostagem(){
 
         //Configura objeto postagem
 //        Postagem postagem = new Postagem("1234","Título postagem!","Corpo postagem");
 
         //Recupera o serviço e salva postagem
-        DataService service = retrofit.create(DataService.class);
+//        service = retrofit.create(DataService.class);
 
         Call<Postagem> call  = service.salvarPostagem("1234","Título postagem!","Corpo postagem");
 
@@ -103,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void recuperarListaRetrofit(){
 
-        DataService service = retrofit.create(DataService.class);
+//        service = retrofit.create(DataService.class);
         Call<List<Foto>> call = service.recuperarFotos();
 
         call.enqueue(new Callback<List<Foto>>() {
